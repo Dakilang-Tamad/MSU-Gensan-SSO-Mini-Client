@@ -12,6 +12,7 @@ from win10toast import ToastNotifier
 from selenium.webdriver.chrome.options import Options
 
 
+#function that opens a link to default browser
 def open_url(url):
     link = url
     try:
@@ -20,6 +21,7 @@ def open_url(url):
     except:
         webbrowser.open_new(link)
 
+#function that checks if a certain file exists in the directory
 def check_file(file_name):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     for root, dirs, files in os.walk(dir_path):
@@ -29,6 +31,7 @@ def check_file(file_name):
     return False
 
 
+#function that checks the site connectivity
 def connect(host='https://sso.msugensan.edu.ph'):
     tkinter.messagebox.showinfo("Loading...", "Please wait while trying to connect to host site.")
     try:
@@ -37,31 +40,39 @@ def connect(host='https://sso.msugensan.edu.ph'):
     except:
         return False
 
+#function that logins and scrapes data from the site
+#currently bugged on conversion
 def login(mail, word):
     try:
-
+        
         popup = ToastNotifier()
-
+        
+        #raises notifications
         ctypes.windll.user32.MessageBoxW(0,"The login sequence will now start. Please wait until the main window changes.", "Warning", 0)
         ctypes.windll.user32.MessageBoxW(0,"A terminal window will appear for the login sequence. Please do not close that window until the sequence is over i.e. the main window changes screens or an error occurs.", "WARNING", 1)
-
+        
+        #sets options to run web driver as headless (no display)
         options = Options()
         options.add_argument("--headless")
         options.add_argument("--gpuless")
-
+        
+        #opens webdriver
         driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
         driver.get('https://sso.msugensan.edu.ph')
         main_window = driver.current_window_handle
-
-        sleep(5)
+        
+        #temporarily sleeps the program to wait for site load
+        sleep(5) 
 
         popup.show_toast("Login process", "Opening host site", duration=3)
-
+        
+        #find site button by xml path then cick
         grade_button = driver.find_element_by_class_name('abcRioButtonContentWrapper')
         grade_button.click()
 
         sleep(5)
-
+        
+        #transfers handle to new popup login window
         for handle in driver.window_handles:
             if handle != main_window:
                 login_page = handle
@@ -71,7 +82,8 @@ def login(mail, word):
         popup.show_toast("Login process", "Entering email", duration=3)
 
         e_mail = mail
-
+        
+        #inputs email address then proceed
         try:
             email = driver.find_element_by_id('identifierId')
             email.send_keys(e_mail)
@@ -88,7 +100,8 @@ def login(mail, word):
         popup.show_toast("Login process", "Entering password", duration=3)
 
         pass_word = word
-
+        
+        #inputs password the proceed
         try:
             password = driver.find_element_by_xpath('//input[@jsname="YPqjbf"]')
             password.send_keys(pass_word)
@@ -101,20 +114,23 @@ def login(mail, word):
             next.click()
 
         sleep(10)
-
+        
+        #return handle back to main web window
         driver.switch_to.window(main_window)
 
         popup.show_toast("Scraping process", "Accessing grades", duration=3)
 
         sleep(10)
-
+        
+        #navigate to grades page
         grade_button = driver.find_element_by_xpath('//a[@id="view_grade"]')
         grade_button.click()
 
         sleep(5)
 
         popup.show_toast("Scraping process", "Scraping grades", duration=3)
-
+        
+        #locating different identifiers and data
         subcodes = driver.find_elements_by_xpath('//td[@data-label="Subject code"]')
         sections = driver.find_elements_by_xpath('//td[@data-label="Section"]')
         grades = driver.find_elements_by_xpath('//td[@data-label="Grade"]')
@@ -123,7 +139,8 @@ def login(mail, word):
         sections2 = []
         grades2 = []
         descriptions2 = []
-
+        
+        #Store data to arrays
         for i in subcodes:
             subcodes2.append(i.text)
         for i in sections:
@@ -132,7 +149,8 @@ def login(mail, word):
             grades2.append(i.text)
         for i in descriptions:
             descriptions2.append(i.text)
-
+        
+        #creates new files and stores the data
         sub_file = open("user_files\suject_codes.txt", "w")
         sec_file = open("user_files\section_codes.txt", "w")
         gr_file = open("user_files\grades.txt", "w")
@@ -155,6 +173,7 @@ def login(mail, word):
         return False
 
 
+#master window
 class MiniClient(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
@@ -169,6 +188,7 @@ class MiniClient(tk.Tk):
         self._frame.pack()
 
 
+#startup window
 class S0(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
