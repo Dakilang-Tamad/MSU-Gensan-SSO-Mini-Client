@@ -10,4 +10,4 @@ Update 1:
       ```
 
 Link for the executable file:
-      https://www.datafilehost.com/d/0386f199
+      https://www.datafilehost.com/d/a67f6b96
